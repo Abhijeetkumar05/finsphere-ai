@@ -9,9 +9,17 @@ const {
 
 const auth = require("../middleware/authMiddleware");
 
-// ✅ Routes
+// =========================
+// PROFILE ROUTES
+// =========================
+
+// GET → fetch profile
 router.get("/", auth, getProfile);
+
+// POST → create/update profile
 router.post("/", auth, saveProfile);
+
+// DELETE → remove profile
 router.delete("/", auth, deleteProfile);
 
 module.exports = router;

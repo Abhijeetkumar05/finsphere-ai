@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API from "../api"; // ✅ IMPORTANT
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,25 +16,38 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      // ✅ Validation
+      if (!email || !password) {
+        setError("Email and password required ❗");
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        // ✅ Save token
-        localStorage.setItem("token", data.token);
-
-        // ✅ Redirect to dashboard
-        navigate("/dashboard");
-      } else {
+      if (!res.ok) {
         setError(data.message || "Login failed ❌");
+        setLoading(false);
+        return;
       }
+
+      // ✅ Save token
+      localStorage.setItem("token", data.token);
+
+      // ✅ Optional: save user info
+      localStorage.setItem("user", JSON.stringify(data.user || {}));
+
+      // ✅ Success
+      navigate("/dashboard");
+
     } catch (err) {
       console.error(err);
       setError("Server error ❌");
@@ -59,7 +73,7 @@ export default function Login() {
         {/* Title */}
         <h2 className="text-xl font-semibold mb-4 text-center">Login</h2>
 
-        {/* Error message */}
+        {/* Error */}
         {error && (
           <p className="text-red-400 text-sm mb-3 text-center">{error}</p>
         )}
@@ -83,7 +97,6 @@ export default function Login() {
             className="w-full px-4 py-2 rounded-lg bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
 
-          {/* Show / Hide */}
           <span
             onClick={() => setShow(!show)}
             className="absolute right-3 top-2 cursor-pointer text-sm text-slate-400"
@@ -101,13 +114,14 @@ export default function Login() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        {/* Signup link */}
+        {/* Signup */}
         <p className="mt-4 text-sm text-center">
           No account?{" "}
           <Link to="/signup" className="text-indigo-400 hover:underline">
             Signup
           </Link>
         </p>
+
       </div>
     </div>
   );

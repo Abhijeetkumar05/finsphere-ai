@@ -9,32 +9,33 @@ import {
   Upload,
   Save,
 } from "lucide-react";
+import API from "../api"; // ✅ ADDED
 
 /* ---------- MAIN COMPONENT ---------- */
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* ---------- FETCH PROFILE FROM BACKEND ---------- */
+  /* ---------- FETCH PROFILE ---------- */
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      const res = await fetch("http://localhost:5000/api/profile", {
+      const res = await fetch(`${API}/api/profile`, {
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!res.ok) throw new Error("Failed to fetch profile");
 
       const data = await res.json();
 
       console.log("PROFILE DATA:", data);
 
-      if (data) {
-        setProfile(data);
-      } else {
-        // fallback if no data
-        setProfile({
+      setProfile(
+        data || {
           name: "",
           email: "",
           mobile: "",
@@ -44,9 +45,8 @@ export default function Profile() {
           occupation: "",
           location: "",
           bio: "",
-        });
-      }
-
+        }
+      );
     } catch (err) {
       console.error("Fetch profile error:", err);
     } finally {
@@ -62,15 +62,18 @@ export default function Profile() {
   const saveProfile = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      const res = await fetch("http://localhost:5000/api/profile", {
+      const res = await fetch(`${API}/api/profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(profile),
       });
+
+      if (!res.ok) throw new Error("Save failed");
 
       const data = await res.json();
 
@@ -78,9 +81,8 @@ export default function Profile() {
 
       alert("Profile saved successfully");
 
-      fetchProfile(); // refresh
+      fetchProfile();
       window.dispatchEvent(new Event("profileUpdated"));
-
     } catch (err) {
       console.error("Save profile error:", err);
     }
@@ -106,17 +108,19 @@ export default function Profile() {
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      await fetch("http://localhost:5000/api/profile", {
+      const res = await fetch(`${API}/api/profile`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
       });
 
+      if (!res.ok) throw new Error("Delete failed");
+
       window.dispatchEvent(new Event("profileUpdated"));
       window.location.reload();
-
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -135,10 +139,7 @@ export default function Profile() {
         <div className="relative">
 
           <img
-            src={
-              profile.avatar ||
-              "https://i.pravatar.cc/150?img=12"
-            }
+            src={profile.avatar || "https://i.pravatar.cc/150?img=12"}
             alt="avatar"
             className="w-20 h-20 rounded-full object-cover border"
           />
@@ -172,41 +173,23 @@ export default function Profile() {
       {/* PROFILE INFO */}
       <Card icon={<User />} title="Profile Information">
 
-        <Input
-          label="Full Name"
-          value={profile.name}
-          onChange={(v) => setProfile({ ...profile, name: v })}
-        />
+        <Input label="Full Name" value={profile.name}
+          onChange={(v) => setProfile({ ...profile, name: v })} />
 
-        <Input
-          label="Email"
-          value={profile.email}
-          onChange={(v) => setProfile({ ...profile, email: v })}
-        />
+        <Input label="Email" value={profile.email}
+          onChange={(v) => setProfile({ ...profile, email: v })} />
 
-        <Input
-          label="Mobile"
-          value={profile.mobile}
-          onChange={(v) => setProfile({ ...profile, mobile: v })}
-        />
+        <Input label="Mobile" value={profile.mobile}
+          onChange={(v) => setProfile({ ...profile, mobile: v })} />
 
-        <Input
-          label="Occupation"
-          value={profile.occupation}
-          onChange={(v) => setProfile({ ...profile, occupation: v })}
-        />
+        <Input label="Occupation" value={profile.occupation}
+          onChange={(v) => setProfile({ ...profile, occupation: v })} />
 
-        <Input
-          label="Location"
-          value={profile.location}
-          onChange={(v) => setProfile({ ...profile, location: v })}
-        />
+        <Input label="Location" value={profile.location}
+          onChange={(v) => setProfile({ ...profile, location: v })} />
 
-        <Textarea
-          label="Bio"
-          value={profile.bio}
-          onChange={(v) => setProfile({ ...profile, bio: v })}
-        />
+        <Textarea label="Bio" value={profile.bio}
+          onChange={(v) => setProfile({ ...profile, bio: v })} />
 
         <button
           onClick={saveProfile}
@@ -218,35 +201,31 @@ export default function Profile() {
 
       </Card>
 
-      {/* PLAN & USAGE */}
+      {/* REST UI SAME (NO CHANGE) */}
       <Card icon={<Crown />} title="Plan & Usage">
         <Usage label="AI Insights" value={78} max={100} />
         <Usage label="Storage" value={45} max={100} />
         <Usage label="API Calls" value={62} max={100} />
       </Card>
 
-      {/* SECURITY */}
       <Card icon={<Shield />} title="Security">
         <Status label="2-Factor Auth" value="Enabled" />
         <Status label="Biometric" value="Disabled" />
         <Status label="Last Login" value="Today" />
       </Card>
 
-      {/* NOTIFICATIONS */}
       <Card icon={<Bell />} title="Notifications">
         <Status label="Email Alerts" value="Active" />
         <Status label="Goal Alerts" value="Active" />
         <Status label="AI Reports" value="Weekly" />
       </Card>
 
-      {/* CONNECTED SERVICES */}
       <Card icon={<Link />} title="Connected Services">
         <Status label="Google" value="Connected" />
         <Status label="Bank Sync" value="Active" />
         <Status label="API Access" value="Enabled" />
       </Card>
 
-      {/* DELETE */}
       <Card icon={<Trash2 />} title="Danger Zone" danger>
         <button
           onClick={deleteProfile}
@@ -260,7 +239,7 @@ export default function Profile() {
   );
 }
 
-/* ---------- UI COMPONENTS ---------- */
+/* ---------- UI COMPONENTS (UNCHANGED) ---------- */
 
 function Card({ icon, title, children, danger }) {
   return (
@@ -302,14 +281,12 @@ function Textarea({ label, value, onChange }) {
 
 function Usage({ label, value, max }) {
   const pct = Math.min(100, (value / max) * 100);
-
   return (
     <div>
       <div className="flex justify-between text-sm mb-1">
         <span>{label}</span>
         <span>{value}/{max}</span>
       </div>
-
       <div className="h-2 bg-slate-200 rounded">
         <div className="h-2 bg-indigo-600 rounded" style={{ width: pct + "%" }} />
       </div>

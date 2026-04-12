@@ -10,6 +10,7 @@ import {
   Trash2,
   Plus,
 } from "lucide-react";
+import API from "../api"; // ✅ ADDED
 
 /* ---------- DEFAULT ---------- */
 const defaultSettings = {
@@ -49,18 +50,15 @@ export default function Settings() {
     const fetchSettings = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) return;
 
-        const res = await fetch("http://localhost:5000/api/settings", {
+        const res = await fetch(`${API}/api/settings`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
 
-        if (data) {
-          setSettings(data);
-        } else {
-          setSettings(defaultSettings);
-     }
+        setSettings(data || defaultSettings);
       } catch (err) {
         console.error(err);
       }
@@ -75,8 +73,9 @@ export default function Settings() {
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      await fetch("http://localhost:5000/api/settings", {
+      await fetch(`${API}/api/settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,8 +153,9 @@ export default function Settings() {
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      await fetch("http://localhost:5000/api/settings", {
+      await fetch(`${API}/api/settings`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

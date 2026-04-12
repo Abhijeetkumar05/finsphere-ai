@@ -11,19 +11,23 @@ const {
   getSummary,
 } = require("../controllers/investmentController");
 
-// ⚠️ IMPORTANT ORDER
+// =========================
+// INVESTMENT ROUTES
+// =========================
+
+// ✅ SUMMARY (must be before "/")
 router.get("/summary", authMiddleware, getSummary);
 
-// GET ALL
+// ✅ GET ALL INVESTMENTS
 router.get("/", authMiddleware, getInvestments);
 
-// ADD
+// ✅ ADD INVESTMENT
 router.post("/", authMiddleware, addInvestment);
 
-// UPDATE
+// ✅ UPDATE INVESTMENT
 router.put("/:id", authMiddleware, updateInvestment);
 
-// DELETE
+// ✅ DELETE INVESTMENT
 router.delete("/:id", authMiddleware, deleteInvestment);
 
 module.exports = router;

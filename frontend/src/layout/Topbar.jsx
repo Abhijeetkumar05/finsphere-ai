@@ -1,25 +1,41 @@
 import { Bell, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import API from "../api"; // ✅ IMPORTANT
 
 export default function Topbar({ title = "Dashboard" }) {
-
   const [profile, setProfile] = useState(null);
 
   /* ---------- FETCH PROFILE ---------- */
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-    fetch("http://localhost:5000/api/profile", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
+        // ✅ SAFETY CHECK
+        if (!token) return;
+
+        const res = await fetch(`${API}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          console.log("Profile fetch failed");
+          return;
+        }
+
+        const data = await res.json();
+
         console.log("TOPBAR PROFILE:", data);
+
         setProfile(data);
-      })
-      .catch(err => console.error(err));
+      } catch (err) {
+        console.error("Topbar profile error:", err);
+      }
+    };
+
+    fetchProfile();
   }, []);
 
   return (
@@ -68,7 +84,7 @@ export default function Topbar({ title = "Dashboard" }) {
 
           <div className="hidden md:block">
             <div className="text-sm font-semibold text-slate-700">
-              {profile?.name || "User"}   {/* ✅ FIXED */}
+              {profile?.name || "User"}
             </div>
             <div className="text-xs text-slate-400">
               {profile?.plan || "Free"}

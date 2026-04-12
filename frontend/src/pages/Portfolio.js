@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2, Wallet, BarChart3, Layers } from "lucide-react";
+import API from "../api"; // ✅ ADDED
 
 export default function Portfolio() {
   const [assets, setAssets] = useState([]);
@@ -20,15 +21,17 @@ export default function Portfolio() {
   const fetchPortfolio = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      const res = await fetch("http://localhost:5000/api/portfolio", {
+      const res = await fetch(`${API}/api/portfolio`, {
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await res.json();
+      if (!res.ok) throw new Error("Fetch failed");
 
+      const data = await res.json();
       setAssets(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -47,12 +50,13 @@ export default function Portfolio() {
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      const res = await fetch("http://localhost:5000/api/portfolio", {
+      const res = await fetch(`${API}/api/portfolio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: form.name,
@@ -69,10 +73,8 @@ export default function Portfolio() {
         return;
       }
 
-      // ✅ Always sync with backend
       fetchPortfolio();
 
-      // ✅ Reset form
       setForm({
         name: "",
         type: "",
@@ -89,11 +91,12 @@ export default function Portfolio() {
   const deleteAsset = async (id) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      const res = await fetch(`http://localhost:5000/api/portfolio/${id}`, {
+      const res = await fetch(`${API}/api/portfolio/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -102,7 +105,6 @@ export default function Portfolio() {
         return;
       }
 
-      // ✅ Refresh from backend
       fetchPortfolio();
 
     } catch (err) {
@@ -122,13 +124,9 @@ export default function Portfolio() {
 
   const sectors = [...new Set(safeAssets.map((a) => a.sector))];
 
-  // ✅ LOADING UI
+  // ✅ LOADING
   if (loading) {
-    return (
-      <div className="p-6 text-gray-400">
-        Loading portfolio...
-      </div>
-    );
+    return <div className="p-6 text-gray-400">Loading portfolio...</div>;
   }
 
   return (
@@ -181,49 +179,34 @@ export default function Portfolio() {
 
         <div className="grid md:grid-cols-4 gap-4">
 
-          <input
-            placeholder="Asset Name"
+          <input placeholder="Asset Name"
             value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="border rounded-lg p-2"
           />
 
-          <input
-            placeholder="Type (Stock, Crypto...)"
+          <input placeholder="Type"
             value={form.type}
-            onChange={(e) =>
-              setForm({ ...form, type: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
             className="border rounded-lg p-2"
           />
 
-          <input
-            placeholder="Sector"
+          <input placeholder="Sector"
             value={form.sector}
-            onChange={(e) =>
-              setForm({ ...form, sector: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, sector: e.target.value })}
             className="border rounded-lg p-2"
           />
 
-          <input
-            type="number"
-            placeholder="Value"
+          <input type="number" placeholder="Value"
             value={form.value}
-            onChange={(e) =>
-              setForm({ ...form, value: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, value: e.target.value })}
             className="border rounded-lg p-2"
           />
 
         </div>
 
-        <button
-          onClick={addAsset}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-500"
-        >
+        <button onClick={addAsset}
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg">
           <Plus size={16} /> Add Asset
         </button>
       </div>
@@ -260,7 +243,7 @@ export default function Portfolio() {
                   <td className="text-right">
                     <button
                       onClick={() => deleteAsset(a.id)}
-                      className="text-red-500 hover:scale-110"
+                      className="text-red-500"
                     >
                       <Trash2 size={16} />
                     </button>

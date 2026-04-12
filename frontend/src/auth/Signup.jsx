@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API from "../api"; // ✅ IMPORTANT
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -16,22 +17,35 @@ export default function Signup() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      // ✅ Validation
+      if (!name || !email || !password) {
+        setError("All fields are required ❗");
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        navigate("/login");
-      } else {
+      if (!res.ok) {
         setError(data.message || "Signup failed ❌");
+        setLoading(false);
+        return;
       }
+
+      // ✅ Success
+      alert("Account created successfully 🎉");
+      navigate("/login");
+
     } catch (err) {
+      console.error(err);
       setError("Server error ❌");
     }
 

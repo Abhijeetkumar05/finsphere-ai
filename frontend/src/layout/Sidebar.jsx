@@ -10,6 +10,7 @@ import {
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import API from "../api"; // ✅ IMPORTANT
 
 export default function Sidebar() {
   const [profile, setProfile] = useState(null);
@@ -19,11 +20,19 @@ export default function Sidebar() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch("http://localhost:5000/api/profile", {
+        // ✅ SAFETY CHECK
+        if (!token) return;
+
+        const res = await fetch(`${API}/api/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
+        if (!res.ok) {
+          console.log("Profile fetch failed");
+          return;
+        }
 
         const data = await res.json();
 
@@ -74,7 +83,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* User (DYNAMIC) */}
+      {/* User */}
       <div className="px-6 py-4 border-t border-slate-800 flex items-center gap-3">
         <img
           src={

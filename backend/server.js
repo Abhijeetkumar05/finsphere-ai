@@ -4,11 +4,26 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Middleware
-app.use(cors()); // keep simple (your old way is fine)
+/* =========================
+   CORS CONFIG (PRODUCTION)
+========================= */
+app.use(cors({
+  origin: [
+    "http://localhost:5173", // local frontend (Vite)
+    "http://localhost:3000", // CRA (if used)
+    "https://your-frontend-url.onrender.com" // 🔁 replace after frontend deploy
+  ],
+  credentials: true
+}));
+
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(express.json());
 
-// ✅ Routes (no change needed)
+/* =========================
+   ROUTES
+========================= */
 const authRoutes = require("./routes/authRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const portfolioRoutes = require("./routes/portfolioRoutes");
@@ -31,23 +46,31 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-// ✅ Health check
+/* =========================
+   HEALTH CHECK
+========================= */
 app.get("/", (req, res) => {
   res.send("Backend Running 🚀");
 });
 
-// ❌ 404 handler (keep it LAST)
+/* =========================
+   404 HANDLER
+========================= */
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// ❌ Error handler (must have next)
+/* =========================
+   ERROR HANDLER
+========================= */
 app.use((err, req, res, next) => {
-  console.error("❌ ERROR:", err.message); // small improvement
+  console.error("❌ ERROR:", err.message);
   res.status(500).json({ message: "Something went wrong" });
 });
 
-// 🚀 Start server
+/* =========================
+   START SERVER
+========================= */
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

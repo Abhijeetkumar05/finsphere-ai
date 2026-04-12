@@ -9,13 +9,17 @@ const {
   deleteGoal,
 } = require("../controllers/goalController");
 
-// GET
+// =========================
+// GOAL ROUTES
+// =========================
+
+// ✅ GET all goals
 router.get("/", authMiddleware, getGoals);
 
-// POST
+// ✅ ADD new goal
 router.post("/", authMiddleware, addGoal);
 
-// DELETE
+// ✅ DELETE goal
 router.delete("/:id", authMiddleware, deleteGoal);
 
 module.exports = router;

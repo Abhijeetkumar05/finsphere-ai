@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2, Target } from "lucide-react";
+import API from "../api"; // ✅ ADDED
 
 export default function Goals() {
   const [goals, setGoals] = useState([]);
@@ -15,28 +16,27 @@ export default function Goals() {
 
   const token = localStorage.getItem("token");
 
-  // ✅ FETCH GOALS (NO WARNING VERSION)
+  // ✅ FETCH GOALS
   useEffect(() => {
     const fetchGoals = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/goals", {
+        if (!token) return;
+
+        const res = await fetch(`${API}/api/goals`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        if (!res.ok) throw new Error("Fetch failed");
+
         const data = await res.json();
 
-        if (Array.isArray(data)) {
-          setGoals(data);
-        } else {
-          setGoals([]);
-        }
-
-        setLoading(false);
+        setGoals(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
         setGoals([]);
+      } finally {
         setLoading(false);
       }
     };
@@ -46,10 +46,13 @@ export default function Goals() {
 
   // ✅ ADD GOAL
   async function addGoal() {
-    if (!form.name || !form.target) return;
+    if (!form.name || !form.target) {
+      alert("Name & Target required");
+      return;
+    }
 
     try {
-      const res = await fetch("http://localhost:5000/api/goals", {
+      const res = await fetch(`${API}/api/goals`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,9 +67,12 @@ export default function Goals() {
 
       const data = await res.json();
 
-      if (data.id) {
-        setGoals([data, ...goals]);
+      if (!res.ok) {
+        alert(data.message || "Error adding goal");
+        return;
       }
+
+      setGoals([data, ...goals]);
 
       setForm({
         name: "",
@@ -75,6 +81,7 @@ export default function Goals() {
         deadline: "",
         type: "General",
       });
+
     } catch (err) {
       console.error(err);
     }
@@ -83,14 +90,20 @@ export default function Goals() {
   // ✅ DELETE GOAL
   async function removeGoal(id) {
     try {
-      await fetch(`http://localhost:5000/api/goals/${id}`, {
+      const res = await fetch(`${API}/api/goals/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      if (!res.ok) {
+        alert("Delete failed");
+        return;
+      }
+
       setGoals(goals.filter((g) => g.id !== id));
+
     } catch (err) {
       console.error(err);
     }
@@ -98,6 +111,7 @@ export default function Goals() {
 
   return (
     <div className="space-y-8">
+
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
@@ -122,49 +136,42 @@ export default function Goals() {
         <div className="font-semibold mb-4">Create New Goal</div>
 
         <div className="grid md:grid-cols-5 gap-3">
+
           <input
             placeholder="Goal name"
             className="border rounded-lg px-3 py-2"
             value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
 
           <input
             placeholder="Target ₹"
             className="border rounded-lg px-3 py-2"
             value={form.target}
-            onChange={(e) =>
-              setForm({ ...form, target: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, target: e.target.value })}
           />
 
           <input
             placeholder="Saved ₹"
             className="border rounded-lg px-3 py-2"
             value={form.saved}
-            onChange={(e) =>
-              setForm({ ...form, saved: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, saved: e.target.value })}
           />
 
           <input
             type="date"
             className="border rounded-lg px-3 py-2"
             value={form.deadline}
-            onChange={(e) =>
-              setForm({ ...form, deadline: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, deadline: e.target.value })}
           />
 
           <button
             onClick={addGoal}
             className="bg-indigo-600 text-white rounded-lg flex items-center justify-center gap-2"
           >
-            <Plus size={16} />
-            Add
+            <Plus size={16} /> Add
           </button>
+
         </div>
       </div>
 
@@ -173,14 +180,12 @@ export default function Goals() {
         <div className="text-center text-slate-500">Loading...</div>
       ) : (
         <>
-          {/* EMPTY */}
           {goals.length === 0 && (
             <div className="text-center text-slate-500">
               No goals yet
             </div>
           )}
 
-          {/* GOALS GRID */}
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
             {goals.map((g) => (
               <GoalCard
@@ -193,7 +198,7 @@ export default function Goals() {
         </>
       )}
 
-      {/* AI INSIGHTS (UNCHANGED) */}
+      {/* AI INSIGHTS */}
       <div className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-2xl p-6 shadow-lg">
         <div className="font-semibold mb-2">AI Goal Insights</div>
         <div className="space-y-1 text-sm opacity-90">
@@ -206,6 +211,7 @@ export default function Goals() {
   );
 }
 
+/* CARD */
 function GoalCard({ goal, remove }) {
   const pct = Math.min((goal.saved / goal.target) * 100, 100).toFixed(0);
 
@@ -227,6 +233,7 @@ function GoalCard({ goal, remove }) {
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow border relative">
+
       <Trash2
         size={16}
         className="absolute top-4 right-4 text-red-500 cursor-pointer"
@@ -239,12 +246,8 @@ function GoalCard({ goal, remove }) {
         </div>
 
         <div>
-          <div className="font-semibold text-slate-800">
-            {goal.name}
-          </div>
-          <div className="text-xs text-slate-500">
-            {goal.type}
-          </div>
+          <div className="font-semibold text-slate-800">{goal.name}</div>
+          <div className="text-xs text-slate-500">{goal.type}</div>
         </div>
       </div>
 
@@ -274,6 +277,7 @@ function GoalCard({ goal, remove }) {
           Save ₹{monthlyNeed}/month
         </div>
       )}
+
     </div>
   );
 }

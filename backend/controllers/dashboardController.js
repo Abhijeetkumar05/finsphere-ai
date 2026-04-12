@@ -2,7 +2,7 @@ const pool = require("../db/db");
 
 exports.getDashboard = async (req, res) => {
   try {
-    // ✅ SAFETY CHECK (IMPORTANT)
+    // ✅ AUTH CHECK
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: "User not authenticated" });
     }
@@ -71,13 +71,14 @@ exports.getDashboard = async (req, res) => {
       [userId]
     );
 
+    // ✅ SAFE PARSING (IMPORTANT)
     const response = {
-      total: Number(totalRes.rows[0].total),
-      monthly: Number(monthlyRes.rows[0].monthly),
-      categories: categoryRes.rows,
-      recent: recentRes.rows,
-      portfolio: Number(portfolioRes.rows[0].total),
-      investments: Number(investmentRes.rows[0].total),
+      total: Number(totalRes.rows[0]?.total || 0),
+      monthly: Number(monthlyRes.rows[0]?.monthly || 0),
+      categories: categoryRes.rows || [],
+      recent: recentRes.rows || [],
+      portfolio: Number(portfolioRes.rows[0]?.total || 0),
+      investments: Number(investmentRes.rows[0]?.total || 0),
     };
 
     console.log("✅ DASHBOARD:", response);
@@ -85,7 +86,7 @@ exports.getDashboard = async (req, res) => {
     res.json(response);
 
   } catch (err) {
-    console.error("❌ ERROR:", err);
+    console.error("❌ DASHBOARD ERROR:", err.message);
     res.status(500).json({ message: "Dashboard error" });
   }
 };

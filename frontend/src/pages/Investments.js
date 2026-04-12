@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2, TrendingUp, TrendingDown } from "lucide-react";
+import API from "../api"; // ✅ ADDED
 
 export default function Investments() {
   const [investments, setInvestments] = useState([]);
@@ -27,21 +28,25 @@ export default function Investments() {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      // 🔥 FIX: Bearer token
       const headers = {
         Authorization: `Bearer ${token}`,
       };
 
-      const res1 = await fetch("http://localhost:5000/api/investments", { headers });
-      const data1 = await res1.json();
+      // ✅ GET INVESTMENTS
+      const res1 = await fetch(`${API}/api/investments`, { headers });
+      if (!res1.ok) throw new Error("Failed to fetch investments");
 
+      const data1 = await res1.json();
       setInvestments(Array.isArray(data1) ? data1 : []);
 
-      const res2 = await fetch("http://localhost:5000/api/investments/summary", { headers });
-      const data2 = await res2.json();
+      // ✅ GET SUMMARY
+      const res2 = await fetch(`${API}/api/investments/summary`, { headers });
+      if (!res2.ok) throw new Error("Failed to fetch summary");
 
-      setSummary(data2);
+      const data2 = await res2.json();
+      setSummary(data2 || {});
 
     } catch (err) {
       console.error(err);
@@ -60,12 +65,13 @@ export default function Investments() {
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      const res = await fetch("http://localhost:5000/api/investments", {
+      const res = await fetch(`${API}/api/investments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 FIXED
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: form.name,
@@ -82,10 +88,8 @@ export default function Investments() {
         return;
       }
 
-      // ✅ refresh data
       fetchData();
 
-      // ✅ clear form (NO STOCK DEFAULT)
       setForm({
         name: "",
         type: "",
@@ -102,13 +106,19 @@ export default function Investments() {
   const remove = async (id) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      await fetch(`http://localhost:5000/api/investments/${id}`, {
+      const res = await fetch(`${API}/api/investments/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`, // 🔥 FIXED
+          Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!res.ok) {
+        alert("Delete failed");
+        return;
+      }
 
       fetchData();
 
@@ -170,38 +180,32 @@ export default function Investments() {
 
         <div className="grid md:grid-cols-5 gap-3">
 
-          <input
-            placeholder="Asset name"
-            className="border rounded-lg px-3 py-2"
+          <input placeholder="Asset name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="border rounded-lg px-3 py-2"
           />
 
-          <input
-            placeholder="Type (Stock, MF, Crypto, Gold)"
-            className="border rounded-lg px-3 py-2"
+          <input placeholder="Type"
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
+            className="border rounded-lg px-3 py-2"
           />
 
-          <input
-            placeholder="Invested ₹"
-            className="border rounded-lg px-3 py-2"
+          <input placeholder="Invested ₹"
             value={form.amount}
             onChange={(e) => setForm({ ...form, amount: e.target.value })}
+            className="border rounded-lg px-3 py-2"
           />
 
-          <input
-            placeholder="Current ₹"
-            className="border rounded-lg px-3 py-2"
+          <input placeholder="Current ₹"
             value={form.current}
             onChange={(e) => setForm({ ...form, current: e.target.value })}
+            className="border rounded-lg px-3 py-2"
           />
 
-          <button
-            onClick={addInvestment}
-            className="bg-indigo-600 text-white rounded-lg flex items-center justify-center gap-2"
-          >
+          <button onClick={addInvestment}
+            className="bg-indigo-600 text-white rounded-lg flex items-center justify-center gap-2">
             <Plus size={16} /> Add
           </button>
 

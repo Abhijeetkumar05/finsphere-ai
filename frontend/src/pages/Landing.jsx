@@ -21,28 +21,28 @@ export default function Landing() {
         </div>
 
         <nav className="hidden md:flex gap-8 text-sm text-gray-300">
-          <button onClick={scrollToFeatures} className="hover:text-white transition">
+          <button onClick={scrollToFeatures} className="hover:text-white">
             Products
           </button>
-          <button onClick={scrollToFeatures} className="hover:text-white transition">
+          <button onClick={scrollToFeatures} className="hover:text-white">
             Tools
           </button>
-          <Link to="/about" className="hover:text-white transition">
+          <Link to="/about" className="hover:text-white">
             Learn
           </Link>
-          <Link to="/about" className="hover:text-white transition">
+          <Link to="/about" className="hover:text-white">
             Why FinSphere
           </Link>
         </nav>
 
         <div className="flex gap-3">
           <Link to="/login">
-            <button className="px-4 py-2 border border-white/20 rounded-lg hover:bg-white/10 transition">
+            <button className="px-4 py-2 border border-white/20 rounded-lg hover:bg-white/10">
               Login
             </button>
           </Link>
           <Link to="/signup">
-            <button className="px-4 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+            <button className="px-4 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700">
               Open Account
             </button>
           </Link>
@@ -58,15 +58,11 @@ export default function Landing() {
           backgroundPosition: "center",
         }}
       >
-        {/* OVERLAY */}
         <div className="absolute inset-0 bg-black/70"></div>
-
-        {/* GRADIENT */}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent"></div>
 
         <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
 
-          {/* LEFT */}
           <div>
             <h1 className="text-6xl font-bold leading-tight">
               AI-Powered <br /> Financial Intelligence
@@ -79,22 +75,21 @@ export default function Landing() {
             <div className="flex gap-4 mt-8">
               <button
                 onClick={() => navigate("/signup")}
-                className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg transition hover:scale-105"
+                className="bg-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-700"
               >
                 Get Started
               </button>
 
               <button
                 onClick={scrollToFeatures}
-                className="border border-white/20 hover:bg-white/10 px-6 py-3 rounded-lg transition"
+                className="border border-white/20 px-6 py-3 rounded-lg hover:bg-white/10"
               >
                 Explore Features
               </button>
             </div>
           </div>
 
-          {/* RIGHT CARD */}
-          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-6 shadow-2xl hover:scale-105 transition duration-500">
+          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-6 shadow-2xl">
             <div className="text-gray-300 text-sm">Net Worth</div>
             <div className="text-4xl font-bold mt-2">₹12,45,000</div>
 
@@ -103,6 +98,7 @@ export default function Landing() {
                 src="/images/finnn.png"
                 alt="Finance Dashboard"
                 className="w-full h-full object-cover"
+                loading="lazy" // ✅ performance improvement
               />
             </div>
           </div>
@@ -133,16 +129,10 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 🔥 PREMIUM CTA */}
-      <section className="relative px-10 py-32 text-center overflow-hidden">
-
-        {/* GRADIENT */}
+      {/* CTA */}
+      <section className="relative px-10 py-32 text-center">
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500"></div>
 
-        {/* GLOW */}
-        <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-purple-500 opacity-30 blur-[140px] rounded-full"></div>
-
-        {/* CONTENT */}
         <div className="relative z-10">
           <h2 className="text-5xl font-bold">
             Start building wealth today
@@ -153,21 +143,21 @@ export default function Landing() {
           </p>
 
           <Link to="/signup">
-            <button className="mt-8 bg-white text-black px-10 py-4 rounded-xl font-semibold hover:scale-110 transition duration-300 shadow-2xl">
+            <button className="mt-8 bg-white text-black px-10 py-4 rounded-xl font-semibold">
               Create Free Account
             </button>
           </Link>
         </div>
-
       </section>
 
     </div>
   );
 }
 
+/* UI */
 function Feature({ title, text }) {
   return (
-    <div className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:scale-105 transition duration-300">
+    <div className="p-6 bg-white/5 border border-white/10 rounded-xl">
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="text-gray-400 mt-2">{text}</p>
     </div>

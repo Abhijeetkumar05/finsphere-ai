@@ -7,48 +7,62 @@ const pool = require("../db/db");
 // ✅ GET SETTINGS
 const getSettings = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const result = await pool.query(
       "SELECT * FROM settings WHERE user_id = $1",
       [req.user.id]
     );
 
     if (result.rows.length === 0) {
-      return res.json(null);
+      return res.json(null); // keep your original behavior
     }
 
     const row = result.rows[0];
 
+    let accounts = [];
+    try {
+      accounts =
+        typeof row.accounts === "string"
+          ? JSON.parse(row.accounts)
+          : row.accounts || [];
+    } catch {
+      accounts = [];
+    }
+
     const formatted = {
       profile: {
-        name: row.name,
-        email: row.email,
-        mobile: row.mobile,
+        name: row.name || "",
+        email: row.email || "",
+        mobile: row.mobile || "",
       },
       security: {
-        twoFA: row.twofa,
-        biometric: row.biometric,
-        autoLogout: row.autologout,
+        twoFA: row.twofa ?? false,
+        biometric: row.biometric ?? false,
+        autoLogout: row.autologout ?? false,
       },
       notifications: {
-        email: row.email_alert,
-        push: row.push_alert,
-        spending: row.spending_alert,
-        goals: row.goal_alert,
+        email: row.email_alert ?? false,
+        push: row.push_alert ?? false,
+        spending: row.spending_alert ?? false,
+        goals: row.goal_alert ?? false,
       },
       ai: {
-        insights: row.ai_insights,
-        categorize: row.ai_categorize,
-        forecasts: row.ai_forecast,
+        insights: row.ai_insights ?? false,
+        categorize: row.ai_categorize ?? false,
+        forecasts: row.ai_forecast ?? false,
       },
       appearance: {
-        darkMode: row.dark_mode,
+        darkMode: row.dark_mode ?? false,
       },
-      accounts: row.accounts || [],
+      accounts,
     };
 
     res.json(formatted);
   } catch (err) {
-    console.error(err);
+    console.error("GET SETTINGS ERROR:", err.message);
     res.status(500).json({ message: "Error fetching settings" });
   }
 };
@@ -56,6 +70,10 @@ const getSettings = async (req, res) => {
 // ✅ SAVE SETTINGS
 const saveSettings = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const s = req.body;
 
     const result = await pool.query(
@@ -95,27 +113,27 @@ const saveSettings = async (req, res) => {
       `,
       [
         req.user.id,
-        s.profile.name,
-        s.profile.email,
-        s.profile.mobile,
-        s.security.twoFA,
-        s.security.biometric,
-        s.security.autoLogout,
-        s.notifications.email,
-        s.notifications.push,
-        s.notifications.spending,
-        s.notifications.goals,
-        s.ai.insights,
-        s.ai.categorize,
-        s.ai.forecasts,
-        s.appearance.darkMode,
-        JSON.stringify(s.accounts),
+        s.profile?.name ?? "",
+        s.profile?.email ?? "",
+        s.profile?.mobile ?? "",
+        s.security?.twoFA ?? false,
+        s.security?.biometric ?? false,
+        s.security?.autoLogout ?? false,
+        s.notifications?.email ?? false,
+        s.notifications?.push ?? false,
+        s.notifications?.spending ?? false,
+        s.notifications?.goals ?? false,
+        s.ai?.insights ?? false,
+        s.ai?.categorize ?? false,
+        s.ai?.forecasts ?? false,
+        s.appearance?.darkMode ?? false,
+        JSON.stringify(s.accounts ?? []),
       ]
     );
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error("SAVE SETTINGS ERROR:", err.message);
     res.status(500).json({ message: "Error saving settings" });
   }
 };
@@ -123,6 +141,10 @@ const saveSettings = async (req, res) => {
 // ✅ DELETE SETTINGS
 const deleteSettings = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     await pool.query(
       "DELETE FROM settings WHERE user_id = $1",
       [req.user.id]
@@ -130,7 +152,7 @@ const deleteSettings = async (req, res) => {
 
     res.json({ message: "Settings deleted" });
   } catch (err) {
-    console.error(err);
+    console.error("DELETE SETTINGS ERROR:", err.message);
     res.status(500).json({ message: "Error deleting settings" });
   }
 };
@@ -142,14 +164,18 @@ const deleteSettings = async (req, res) => {
 // ✅ GET PROFILE
 const getProfile = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const result = await pool.query(
       "SELECT * FROM profile WHERE user_id = $1",
       [req.user.id]
     );
 
-    res.json(result.rows[0] || null);
+    res.json(result.rows[0] || {}); // safer for frontend
   } catch (err) {
-    console.error(err);
+    console.error("GET PROFILE ERROR:", err.message);
     res.status(500).json({ message: "Error fetching profile" });
   }
 };
@@ -157,16 +183,20 @@ const getProfile = async (req, res) => {
 // ✅ SAVE PROFILE
 const saveProfile = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const {
-      name,
-      email,
-      mobile,
-      role,
-      plan,
-      avatar,
-      occupation,
-      location,
-      bio,
+      name = "",
+      email = "",
+      mobile = "",
+      role = "",
+      plan = "",
+      avatar = "",
+      occupation = "",
+      location = "",
+      bio = "",
     } = req.body;
 
     const result = await pool.query(
@@ -203,7 +233,7 @@ const saveProfile = async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error("SAVE PROFILE ERROR:", err.message);
     res.status(500).json({ message: "Error saving profile" });
   }
 };
@@ -211,6 +241,10 @@ const saveProfile = async (req, res) => {
 // ✅ DELETE PROFILE
 const deleteProfile = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     await pool.query(
       "DELETE FROM profile WHERE user_id = $1",
       [req.user.id]
@@ -218,22 +252,18 @@ const deleteProfile = async (req, res) => {
 
     res.json({ message: "Profile deleted" });
   } catch (err) {
-    console.error(err);
+    console.error("DELETE PROFILE ERROR:", err.message);
     res.status(500).json({ message: "Error deleting profile" });
   }
 };
 
 /* =========================
-   FINAL EXPORT (IMPORTANT)
+   EXPORT
 ========================= */
-
 module.exports = {
-  // settings
   getSettings,
   saveSettings,
   deleteSettings,
-
-  // profile
   getProfile,
   saveProfile,
   deleteProfile,

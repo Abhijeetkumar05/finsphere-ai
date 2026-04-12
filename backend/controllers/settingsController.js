@@ -1,8 +1,6 @@
 const pool = require("../db/db");
 
-/* =========================
-   FORMAT FUNCTION (REUSABLE)
-========================= */
+/* ========================= FORMAT ========================= */
 const formatSettings = (row) => {
   let accounts = [];
 
@@ -44,9 +42,7 @@ const formatSettings = (row) => {
   };
 };
 
-/* =========================
-   DEFAULT SETTINGS (NO NULL)
-========================= */
+/* ========================= DEFAULT ========================= */
 const defaultSettings = {
   profile: { name: "", email: "", mobile: "" },
   security: { twoFA: false, biometric: false, autoLogout: false },
@@ -56,35 +52,36 @@ const defaultSettings = {
   accounts: [],
 };
 
-/* =========================
-   GET SETTINGS
-========================= */
+/* ========================= GET ========================= */
 const getSettings = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const result = await pool.query(
       "SELECT * FROM settings WHERE user_id = $1",
       [req.user.id]
     );
 
-    // ✅ NEVER RETURN NULL
     if (result.rows.length === 0) {
       return res.json(defaultSettings);
     }
 
-    const formatted = formatSettings(result.rows[0]);
-
-    res.json(formatted);
+    res.json(formatSettings(result.rows[0]));
   } catch (err) {
-    console.error("GET SETTINGS ERROR:", err);
+    console.error("GET SETTINGS ERROR:", err.message);
     res.status(500).json({ message: "Error fetching settings" });
   }
 };
 
-/* =========================
-   SAVE SETTINGS (UPSERT)
-========================= */
+/* ========================= SAVE ========================= */
 const saveSettings = async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const s = req.body;
 
     const result = await pool.query(
@@ -142,38 +139,29 @@ const saveSettings = async (req, res) => {
       ]
     );
 
-    // ✅ RETURN SAME FORMAT AS GET
-    const formatted = formatSettings(result.rows[0]);
-
-    res.json(formatted);
+    res.json(formatSettings(result.rows[0]));
   } catch (err) {
-    console.error("SAVE SETTINGS ERROR:", err);
+    console.error("SAVE SETTINGS ERROR:", err.message);
     res.status(500).json({ message: "Error saving settings" });
   }
 };
 
-/* =========================
-   DELETE SETTINGS
-========================= */
+/* ========================= DELETE ========================= */
 const deleteSettings = async (req, res) => {
   try {
-    await pool.query(
-      "DELETE FROM settings WHERE user_id = $1",
-      [req.user.id]
-    );
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    await pool.query("DELETE FROM settings WHERE user_id = $1", [
+      req.user.id,
+    ]);
 
     res.json({ message: "Settings deleted" });
   } catch (err) {
-    console.error("DELETE SETTINGS ERROR:", err);
+    console.error("DELETE SETTINGS ERROR:", err.message);
     res.status(500).json({ message: "Error deleting settings" });
   }
 };
 
-/* =========================
-   EXPORT
-========================= */
-module.exports = {
-  getSettings,
-  saveSettings,
-  deleteSettings,
-};
+module.exports = { getSettings, saveSettings, deleteSettings };

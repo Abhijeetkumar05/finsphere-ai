@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API from "../api"; // ✅ IMPORTANT
 
 export default function AddExpense({ onAdded }) {
   const [title, setTitle] = useState("");
@@ -9,32 +10,39 @@ export default function AddExpense({ onAdded }) {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch("http://localhost:5000/api/expenses", {
+      // ✅ Validation
+      if (!title || !amount || !category) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      const res = await fetch(`${API}/api/expenses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
+          Authorization: `Bearer ${token}`, // ✅ FIXED
         },
         body: JSON.stringify({
           title,
-          amount,
+          amount: Number(amount), // ✅ ensure number
           category,
         }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        alert("Expense added ✅");
-
-        setTitle("");
-        setAmount("");
-        setCategory("");
-
-        onAdded(); // refresh dashboard
-      } else {
-        alert(data.message);
+      if (!res.ok) {
+        alert(data.message || "Failed to add expense");
+        return;
       }
+
+      alert("Expense added ✅");
+
+      setTitle("");
+      setAmount("");
+      setCategory("");
+
+      onAdded && onAdded(); // ✅ safe call
     } catch (err) {
       console.error(err);
       alert("Error adding expense");
@@ -53,6 +61,7 @@ export default function AddExpense({ onAdded }) {
       />
 
       <input
+        type="number"
         placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}

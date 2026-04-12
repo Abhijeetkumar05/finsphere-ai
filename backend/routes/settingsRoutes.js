@@ -9,13 +9,17 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 
-// ✅ GET
+// =========================
+// SETTINGS ROUTES
+// =========================
+
+// GET → fetch user settings
 router.get("/", authMiddleware, getSettings);
 
-// ✅ SAVE
+// POST → save/update settings
 router.post("/", authMiddleware, saveSettings);
 
-// ✅ DELETE
+// DELETE → delete user settings
 router.delete("/", authMiddleware, deleteSettings);
 
 module.exports = router;

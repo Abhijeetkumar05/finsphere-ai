@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import KPICards from "../components/KPICards";
+import API from "../api"; // ✅ add this
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function Dashboard() {
           return;
         }
 
-        const res = await fetch("http://localhost:5000/api/dashboard", {
+        const res = await fetch(`${API}/api/dashboard`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -36,7 +36,6 @@ export default function Dashboard() {
     fetchDashboard();
   }, [navigate]);
 
-  // ⏳ Loading
   if (!data) {
     return <div className="p-6">Loading...</div>;
   }
