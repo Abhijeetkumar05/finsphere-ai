@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
 import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import API from "../api";
 
@@ -15,7 +16,7 @@ export default function Expenses() {
   /* =========================
      FETCH EXPENSES
   ========================= */
-  const fetchExpenses = useCallback(async () => {
+  const fetchExpenses = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -29,7 +30,7 @@ export default function Expenses() {
         }
       );
 
-      if (!res.ok) throw new Error("Failed to fetch expenses");
+      if (!res.ok) throw new Error("Failed to fetch");
 
       const data = await res.json();
       setExpenses(Array.isArray(data) ? data : []);
@@ -37,14 +38,14 @@ export default function Expenses() {
       console.error("Fetch error:", err);
       setExpenses([]);
     }
-  }, [selectedDate]);
+  };
 
   /* =========================
      AUTO REFRESH
   ========================= */
   useEffect(() => {
     fetchExpenses();
-  }, [fetchExpenses]);
+  }, [selectedDate]);
 
   /* =========================
      ADD EXPENSE
