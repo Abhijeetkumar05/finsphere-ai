@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import API from "../api";
 
@@ -15,7 +15,7 @@ export default function Expenses() {
   /* =========================
      FETCH EXPENSES
   ========================= */
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -37,14 +37,14 @@ export default function Expenses() {
       console.error("Fetch error:", err);
       setExpenses([]);
     }
-  };
+  }, [selectedDate]);
 
   /* =========================
      AUTO REFRESH
   ========================= */
   useEffect(() => {
     fetchExpenses();
-  }, [selectedDate]);
+  }, [fetchExpenses]);
 
   /* =========================
      ADD EXPENSE
@@ -67,19 +67,16 @@ export default function Expenses() {
         },
         body: JSON.stringify({
           ...form,
-          amount: Number(form.amount), // ✅ important
+          amount: Number(form.amount),
         }),
       });
 
       if (!res.ok) throw new Error("Add failed");
 
-      // reset form
       setForm({ title: "", category: "", amount: "" });
 
-      // refresh list
-      setSelectedDate("");
+      // refresh
       fetchExpenses();
-
     } catch (err) {
       console.error("Add error:", err);
       alert("Failed to add expense");
@@ -223,7 +220,7 @@ export default function Expenses() {
         </div>
       </div>
 
-      {/* EMPTY STATE */}
+      {/* EMPTY */}
       {expenses.length === 0 && (
         <div className="text-center text-gray-400 py-6">
           No expenses yet
