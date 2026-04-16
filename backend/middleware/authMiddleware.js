@@ -9,7 +9,7 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    // ❌ Invalid format (must be Bearer <token>)
+    // ❌ Invalid format
     if (!authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Invalid token format" });
     }
@@ -17,17 +17,24 @@ const authMiddleware = (req, res, next) => {
     // ✅ Extract token
     const token = authHeader.split(" ")[1];
 
+    // ❌ Missing token
     if (!token) {
       return res.status(401).json({ message: "Token missing" });
+    }
+
+    // ❌ Missing secret
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET not set");
+      return res.status(500).json({ message: "Server config error" });
     }
 
     // ✅ Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ Attach user safely
+    // ✅ Attach user
     req.user = {
       id: decoded.id,
-      email: decoded.email,
+      email: decoded.email || null
     };
 
     next();

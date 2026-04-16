@@ -2,16 +2,18 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const pool = require("./db/db"); // ✅ IMPORTANT
+
 const app = express();
 
 /* =========================
-   ✅ FINAL CORS FIX
+   ✅ CORS CONFIG
 ========================= */
 app.use(cors({
   origin: [
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://finsphere-ai.vercel.app" // ✅ YOUR VERCEL URL
+    "https://finsphere-ai.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
@@ -21,6 +23,27 @@ app.use(cors({
    MIDDLEWARE
 ========================= */
 app.use(express.json());
+
+/* =========================
+   ✅ AUTO CREATE USERS TABLE
+========================= */
+const createTable = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+      );
+    `);
+    console.log("✅ Users table ready");
+  } catch (err) {
+    console.error("❌ Table creation error:", err.message);
+  }
+};
+
+createTable();
 
 /* =========================
    ROUTES
@@ -65,8 +88,10 @@ app.use((req, res) => {
    ERROR HANDLER
 ========================= */
 app.use((err, req, res, next) => {
-  console.error("❌ ERROR:", err.message);
-  res.status(500).json({ message: "Something went wrong" });
+  console.error("❌ ERROR:", err);
+  res.status(500).json({
+    message: err.message || "Something went wrong"
+  });
 });
 
 /* =========================
