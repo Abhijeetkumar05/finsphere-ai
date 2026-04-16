@@ -5,14 +5,15 @@ require("dotenv").config();
 const app = express();
 
 /* =========================
-   CORS CONFIG (PRODUCTION)
+   ✅ FINAL CORS FIX
 ========================= */
 app.use(cors({
   origin: [
-    "http://localhost:5173", // local frontend (Vite)
-    "http://localhost:3000", // CRA (if used)
-    "https://your-frontend-url.onrender.com" // 🔁 replace after frontend deploy
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://finsphere-ai.vercel.app" // ✅ YOUR VERCEL URL
   ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
